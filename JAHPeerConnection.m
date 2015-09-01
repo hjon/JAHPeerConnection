@@ -5,12 +5,14 @@
 //
 
 #import "JAHPeerConnection.h"
+#import "RTCSessionDescriptionDelegate.h"
 #import "RTCPeerConnectionFactory.h"
 #import "RTCMediaConstraints.h"
 #import "RTCPair.h"
 
-@interface JAHPeerConnection () <RTCPeerConnectionDelegate>
+@interface JAHPeerConnection () <RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate>
 @property (nonatomic, strong) RTCPeerConnection *peerConnection
+@property (nonatomic, stream) NSMutableArray* operationBlocks;
 @end
 
 
@@ -26,12 +28,53 @@
         }
 
         _peerConnection = [peerConnectionFactory peerConnectionWithICEServers:servers constraints:constraints delegate:self];
+        _operationBlocks = [NSMutableArray array];
     }
     return self;
 }
 
 - (id)forwardingTargetForSelector:(SEL)aSelector {
     return self.peerConnection;
+}
+
+#pragma mark - Wrapper API
+
+- (void)createOfferWithConstraints:(RTCMediaConstraints*)constraints completionHandler:(void (^)(RTCSessionDescription* sessionDescription, NSError* error))completionHandler {
+    [self.operationBlocks addObject:completionHandler];
+    [self.peerConnection createOfferWithDelegate:self constraints:constraints];
+}
+
+- (void)createAnswerWithConstraints:(RTCMediaConstraints*)constraints completionHandler:(void (^)(RTCSessionDescription* sessionDescription, NSError* error))completionHandler {
+    [self.operationBlocks addObject:completionHandler];
+    [self.peerConnection createAnswerWithDelegate:self constraints:constraints];
+}
+
+- (void)setLocalDescription:(RTCSessionDescription*)sdp completionHandler:(void (^)(NSError* error))completionHandler {
+    [self.operationBlocks addObject:completionHandler];
+    [self.peerConnection setLocalDescriptionWithDelegate:self sessionDescription:sdp];
+}
+
+- (void)setRemoteDescription:(RTCSessionDescription*)sdp completionHandler:(void (^)(NSError* error))completionHandler {
+    [self.operationBlocks addObject:completionHandler];
+    [self.peerConnection setRemoteDescriptionWithDelegate:self sessionDescription:sdp];
+}
+
+#pragma mark - RTCSessionDescriptionDelegate methods
+
+- (void)peerConnection:(RTCPeerConnection*)peerConnection didCreateSessionDescription:(RTCSessionDescription*)sdp error:(NSError*)error {
+    void (^completion)(RTCSessionDescription* sessionDescription, NSError* error) = [self.operationBlocks firstObject];
+    if (completion) {
+        [self.operationBlocks removeObjectAtIndex:0];
+        completion(sessionDescription, error);
+    }
+}
+
+- (void)peerConnection:(RTCPeerConnection*)peerConnection didSetSessionDescriptionWithError:(NSError*)error {
+    void (^completion)(NSError* error) = [self.operationBlocks firstObject];
+    if (completion) {
+        [self.operationBlocks removeObjectAtIndex:0];
+        completion(error);
+    }
 }
 
 #pragma mark - RTCPeerConnectionDelegate methods
