@@ -11,8 +11,8 @@
 #import "RTCPair.h"
 
 @interface JAHPeerConnection () <RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate>
-@property (nonatomic, strong) RTCPeerConnection *peerConnection
-@property (nonatomic, stream) NSMutableArray* operationBlocks;
+@property (nonatomic, strong) RTCPeerConnection *peerConnection;
+@property (nonatomic, strong) NSMutableArray* operationBlocks;
 @end
 
 
@@ -65,7 +65,7 @@
     void (^completion)(RTCSessionDescription* sessionDescription, NSError* error) = [self.operationBlocks firstObject];
     if (completion) {
         [self.operationBlocks removeObjectAtIndex:0];
-        completion(sessionDescription, error);
+        completion(sdp, error);
     }
 }
 
