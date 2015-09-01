@@ -22,11 +22,30 @@
 - (void)createAnswerWithConstraints:(RTCMediaConstraints*)constraints completionHandler:(void (^)(RTCSessionDescription* sessionDescription, NSError* error))completionHandler;
 - (void)setLocalDescription:(RTCSessionDescription*)sdp completionHandler:(void (^)(NSError* error))completionHandler;
 - (void)setRemoteDescription:(RTCSessionDescription*)sdp completionHandler:(void (^)(NSError* error))completionHandler;
+@end
+
+
+@interface JAHPeerConnection (RTCPeerConnectionForwards)
+// Refer to RTCPeerConnection for details
+@property(nonatomic, strong, readonly) NSArray* localStreams;
+@property(nonatomic, assign, readonly) RTCSessionDescription* localDescription;
+@property(nonatomic, assign, readonly) RTCSessionDescription* remoteDescription;
+@property(nonatomic, assign, readonly) RTCSignalingState signalingState;
+@property(nonatomic, assign, readonly) RTCICEConnectionState iceConnectionState;
+@property(nonatomic, assign, readonly) RTCICEGatheringState iceGatheringState;
+
+- (BOOL)addStream:(RTCMediaStream*)stream;
+- (void)removeStream:(RTCMediaStream*)stream;
+- (RTCDataChannel*)createDataChannelWithLabel:(NSString*)label config:(RTCDataChannelInit*)config;
+- (BOOL)addICECandidate:(RTCICECandidate*)candidate;
+- (BOOL)updateICEServers:(NSArray*)servers constraints:(RTCMediaConstraints*)constraints;
+- (void)close;
 
 @end
 
 
 @protocol JAHPeerConnectionDelegate <NSObject>
+// Refer to RTCPeerConnectionDelegate for details
 - (void)peerConnection:(JAHPeerConnection*)peerConnection signalingStateChanged:(RTCSignalingState)stateChanged;
 - (void)peerConnection:(JAHPeerConnection*)peerConnection addedStream:(RTCMediaStream*)stream;
 - (void)peerConnection:(JAHPeerConnection*)peerConnection removedStream:(RTCMediaStream*)stream;
