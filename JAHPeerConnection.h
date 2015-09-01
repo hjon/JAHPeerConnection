@@ -22,6 +22,8 @@
 - (void)createAnswerWithConstraints:(RTCMediaConstraints*)constraints completionHandler:(void (^)(RTCSessionDescription* sessionDescription, NSError* error))completionHandler;
 - (void)setLocalDescription:(RTCSessionDescription*)sdp completionHandler:(void (^)(NSError* error))completionHandler;
 - (void)setRemoteDescription:(RTCSessionDescription*)sdp completionHandler:(void (^)(NSError* error))completionHandler;
+- (BOOL)getStatsForMediaStreamTrack:(RTCMediaStreamTrack*)mediaStreamTrack statsOutputLevel:(RTCStatsOutputLevel)statsOutputLevel completionHandler:(void (^)(NSArray* stats))completionHandler;
+
 @end
 
 

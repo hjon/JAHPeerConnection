@@ -6,13 +6,15 @@
 
 #import "JAHPeerConnection.h"
 #import "RTCSessionDescriptionDelegate.h"
+#import "RTCStatsDelegate.h"
 #import "RTCPeerConnectionFactory.h"
 #import "RTCMediaConstraints.h"
 #import "RTCPair.h"
 
-@interface JAHPeerConnection () <RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate>
+@interface JAHPeerConnection () <RTCPeerConnectionDelegate, RTCSessionDescriptionDelegate, RTCStatsDelegate>
 @property (nonatomic, strong) RTCPeerConnection *peerConnection;
 @property (nonatomic, strong) NSMutableArray* operationBlocks;
+@property (nonatomic, strong) NSMutableArray* statBlocks;
 @end
 
 
@@ -29,6 +31,7 @@
 
         _peerConnection = [peerConnectionFactory peerConnectionWithICEServers:servers constraints:constraints delegate:self];
         _operationBlocks = [NSMutableArray array];
+        _statBlocks = [NSMutableArray array];
     }
     return self;
 }
@@ -59,6 +62,11 @@
     [self.peerConnection setRemoteDescriptionWithDelegate:self sessionDescription:sdp];
 }
 
+- (BOOL)getStatsForMediaStreamTrack:(RTCMediaStreamTrack*)mediaStreamTrack statsOutputLevel:(RTCStatsOutputLevel)statsOutputLevel completionHandler:(void (^)(NSArray* stats))completionHandler {
+    [self.statBlocks addObject:completionHandler];
+    return [self.peerConnection getStatsForMediaStreamTrack:mediaStreamTrack statsOutputLevel:statsOutputLevel completionHandler:completionHandler];
+}
+
 #pragma mark - RTCSessionDescriptionDelegate methods
 
 - (void)peerConnection:(RTCPeerConnection*)peerConnection didCreateSessionDescription:(RTCSessionDescription*)sdp error:(NSError*)error {
@@ -73,6 +81,16 @@
     void (^completion)(NSError* error) = [self.operationBlocks firstObject];
     if (completion) {
         [self.operationBlocks removeObjectAtIndex:0];
+        completion(error);
+    }
+}
+
+#pragma mark - RTCStatsDelegate methods
+
+- (void)peerConnection:(RTCPeerConnection*)peerConnection didGetStats:(NSArray*)stats {
+    void (^completion)(NSArray* stats) = [self.statBlocks firstObject];
+    if (completion) {
+        [self.statBlocks removeObjectAtIndex:0];
         completion(error);
     }
 }
