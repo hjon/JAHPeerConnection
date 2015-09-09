@@ -64,7 +64,7 @@
 
 - (BOOL)getStatsForMediaStreamTrack:(RTCMediaStreamTrack*)mediaStreamTrack statsOutputLevel:(RTCStatsOutputLevel)statsOutputLevel completionHandler:(void (^)(NSArray* stats))completionHandler {
     [self.statBlocks addObject:completionHandler];
-    return [self.peerConnection getStatsForMediaStreamTrack:mediaStreamTrack statsOutputLevel:statsOutputLevel completionHandler:completionHandler];
+    return [self.peerConnection getStatsWithDelegate:self mediaStreamTrack:mediaStreamTrack statsOutputLevel:statsOutputLevel];
 }
 
 #pragma mark - RTCSessionDescriptionDelegate methods
@@ -91,7 +91,7 @@
     void (^completion)(NSArray* stats) = [self.statBlocks firstObject];
     if (completion) {
         [self.statBlocks removeObjectAtIndex:0];
-        completion(error);
+        completion(stats);
     }
 }
 
