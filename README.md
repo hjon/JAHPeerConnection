@@ -9,7 +9,7 @@ A block-based API (and a nicer `init` method) for RTCPeerConnection from [webrtc
 I've added a nicer `init` method that provides some default constraints.
 
 ```objective-c
-JAHPeerConnection* peerConnection = [[TLKPeerConnection alloc] initWithICEServers:servers constraints:constraints peerConnectionFactory:peerConnectionFactory];
+JAHPeerConnection* peerConnection = [[JAHPeerConnection alloc] initWithICEServers:servers constraints:constraints peerConnectionFactory:peerConnectionFactory];
 peerConnection.delegate = self;
 ```
 
